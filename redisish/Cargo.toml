@@ -1,0 +1,7 @@
+[package]
+name = "redisish"
+version = "0.1.0"
+authors = ["yom <yom@artyom.me>"]
+
+[dependencies]
+nom = "4"
