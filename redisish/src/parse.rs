@@ -1,7 +1,7 @@
 use command::Command;
 use nom::{rest_s, space1};
 
-/// Parse a Redisish command.
+/// Parse a command.
 pub fn parse(cmd: String) -> Result<Command, String> {
     match commandP(cmd.trim()) {
         Ok((_rest, val)) => Ok(val),
