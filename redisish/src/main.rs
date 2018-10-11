@@ -1,11 +1,15 @@
 #[macro_use]
 extern crate nom;
 
-use nom::space1;
+mod command;
+mod parse;
+
+use command::*;
+use parse::*;
 
 use std::collections::HashMap;
 use std::io;
-use std::io::{BufRead, BufReader, Error, ErrorKind, Write};
+use std::io::{BufRead, BufReader, Write};
 use std::net::{TcpListener, TcpStream};
 
 fn main() -> io::Result<()> {
@@ -15,75 +19,23 @@ fn main() -> io::Result<()> {
     // Accept connections and process them serially
     for stream in listener.incoming() {
         let mut stream = stream?;
-        let cmd = {
+        let maybe_cmd = {
             let mut reader = BufReader::new(&stream);
             let mut line = String::new();
             let _ = reader.read_line(&mut line)?;
-            parse(line.as_str())?
+            parse(line)
         };
-        // Execute a command and go home.
-        //
-        // TODO: handle several commands in the same connection.
-        exec(cmd, &mut store, &mut stream);
+        match maybe_cmd {
+            Ok(cmd) => exec(cmd, &mut store, &mut stream),
+            Err(e) => {
+                stream
+                    .write(format!("Parsing error: {}", e).as_bytes())
+                    .unwrap();
+            }
+        }
     }
     Ok(())
 }
-
-#[derive(Debug, Clone)]
-enum Command {
-    /// Insert the specified value at the head of the list stored at key. If
-    /// key does not exist, it is created as empty list before performing
-    /// the push operation.
-    ///
-    /// Example: `PUBLISH numbers one`. Note the lack of quotes.
-    Publish { list: String, value: String },
-
-    /// Remove and return the first element of the list stored at key.
-    ///
-    /// Example: `RETRIEVE numbers`.
-    Retrieve { list: String },
-}
-
-// Parsing
-
-/// Parse a Redisish command. The command has to end with a newline.
-///
-/// TODO: would be nice if the command didn't have to with a newline.
-fn parse(cmd: &str) -> io::Result<Command> {
-    match commandP(cmd) {
-        Ok(("", parsed_cmd)) => Ok(parsed_cmd),
-        Ok((rest, _)) => Err(Error::new(
-            ErrorKind::Other,
-            format!("Unparsed input: {}", rest),
-        )),
-        Err(err) => Err(Error::new(
-            ErrorKind::Other,
-            format!("Parse error: {}", err),
-        )),
-    }
-}
-
-named!(publishP<&str, Command>,
-  do_parse!(
-           tag!("PUBLISH") >> space1 >>
-    list:  take_until!(" ") >>
-           space1 >>
-    value: take_until_and_consume!("\n") >>
-    (Command::Publish { list: list.into(), value: value.into() })
-  )
-);
-
-named!(retrieveP<&str, Command>,
-  do_parse!(
-           tag!("RETRIEVE") >> space1 >>
-    list:  take_until_and_consume!("\n") >>
-    (Command::Retrieve { list: list.into() })
-  )
-);
-
-named!(commandP<&str, Command>,
-  alt!(publishP | retrieveP)
-);
 
 // Execution
 
