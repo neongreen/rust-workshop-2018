@@ -1,4 +1,4 @@
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Command {
     /// Insert the specified value at the head of the list stored at key. If
     /// key does not exist, it is created as empty list before performing

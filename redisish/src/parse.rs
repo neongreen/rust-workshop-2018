@@ -2,6 +2,17 @@ use command::Command;
 use nom::{rest_s, space1};
 
 /// Parse a command.
+///
+/// ```
+/// # use redisish::parse::*;
+/// # use redisish::command::*;
+///
+/// assert_eq!(parse("PUBLISH numbers one".into()),
+///     Ok(Command::Publish{list: "numbers".into(), value: "one".into()}));
+///
+/// assert_eq!(parse("RETRIEVE numbers".into()),
+///     Ok(Command::Retrieve{list: "numbers".into()}));
+/// ```
 pub fn parse(cmd: String) -> Result<Command, String> {
     match commandP(cmd.trim()) {
         Ok((_rest, val)) => Ok(val),
