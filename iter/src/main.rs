@@ -13,6 +13,7 @@ struct Iter<'a, T: 'a> {
     position: usize,
 }
 
+// `Iter` is an iterator
 impl<'a, T> Iterator for Iter<'a, T> {
     type Item = &'a T;
     fn next(&mut self) -> Option<Self::Item> {
@@ -25,12 +26,23 @@ impl<'a, T> Iterator for Iter<'a, T> {
     }
 }
 
+// We can get it by doing `into_iter`
 impl<'a, T> IntoIterator for &'a Slice<'a, T> {
     type Item = &'a T;
     type IntoIter = Iter<'a, T>;
     fn into_iter(self) -> Iter<'a, T> {
         Iter {
             inner: self,
+            position: 0,
+        }
+    }
+}
+
+// Or by doing `iter`
+impl<'a, T> Slice<'a, T> {
+    fn iter(&'a self) -> Iter<'a, T> {
+        Iter {
+            inner: &self,
             position: 0,
         }
     }
@@ -83,8 +95,8 @@ fn main() {
     let data = [1, 2, 3];
     let mt = Slice(&data);
 
-    // run_iter(mt.iter());
-    // run_iter(&mt.iter());
+    run_iter((&mt).iter());
+    run_iter(mt.iter());
     run_iter((&mt).into_iter());
     run_iter(mt.into_iter());
 }
