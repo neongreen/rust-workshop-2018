@@ -1,12 +1,6 @@
-#[macro_use]
-extern crate nom;
-
-mod command;
-mod execute;
-mod parse;
-
-use execute::*;
-use parse::*;
+extern crate redisish;
+use redisish::execute::*;
+use redisish::parse::*;
 
 use std::io;
 use std::io::{BufRead, BufReader, Write};

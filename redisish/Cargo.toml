@@ -3,5 +3,13 @@ name = "redisish"
 version = "0.1.0"
 authors = ["yom <yom@artyom.me>"]
 
+[lib]
+name = "redisish"
+path = "src/lib.rs"
+
+[[bin]]
+name = "redisish"
+path = "src/main.rs"
+
 [dependencies]
 nom = "4"
