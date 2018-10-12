@@ -38,17 +38,17 @@ fn handle_client(stream: &mut TcpStream, store: Arc<Mutex<Store>>) {
     match maybe_cmd {
         Ok(cmd) => match exec(cmd, &mut store) {
             Ok(res) => {
-                stream.write(res.as_bytes()).unwrap();
+                stream.write(format!("{}\n", res).as_bytes()).unwrap();
             }
             Err(e) => {
                 stream
-                    .write(format!("Execution error: {}", e).as_bytes())
+                    .write(format!("Execution error: {}\n", e).as_bytes())
                     .unwrap();
             }
         },
         Err(e) => {
             stream
-                .write(format!("Parsing error: {}", e).as_bytes())
+                .write(format!("Parsing error: {}\n", e).as_bytes())
                 .unwrap();
         }
     }
